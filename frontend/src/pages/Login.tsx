@@ -5,28 +5,35 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useGoogleLogin } from "@react-oauth/google";
 import { FcGoogle} from "react-icons/fc"
+import { useAppData } from "../context/AppContext";
 
 const Login = () => {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    const responseGoogle = async (authResult : any) => {
-        setLoading(true);
-        try {
-            const result = await axios.post(`${authService}/api/auth/login`, {
-                code: authResult["code"],
-            });
+    const { setIsAuth, setUser } = useAppData();
 
-            localStorage.setItem("token", result.data.token);
-            toast.success(result.data.message);
-            setLoading(false);
-            navigate("/")
-            } catch(error) {
-                console.log("Problem while login");
-                setLoading(false);
-                
-            }   
-    };
+    const responseGoogle = async (authResult: any) => {
+    setLoading(true);
+    try {
+        const result = await axios.post(`${authService}/api/auth/login`, {
+            code: authResult["code"],
+        });
+
+        localStorage.setItem("token", result.data.token);
+        toast.success(result.data.message);
+
+        setLoading(false)
+        setUser(result.data.user);
+        setIsAuth(true);
+        navigate("/");
+
+    } catch (error) {
+        console.log("Problem while login");
+    } finally {
+        setLoading(false);
+    }
+};
     const GoogleLogin = useGoogleLogin ({
         onSuccess: responseGoogle,
         onError: responseGoogle,
